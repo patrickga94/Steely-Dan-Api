@@ -17,7 +17,7 @@ const handle404 = customErrors.handle404
 const requireOwnership = customErrors.requireOwnership
 
 // this is middleware that will remove blank fields from `req.body`, e.g.
-// { example: { title: '', text: 'foo' } } -> { example: { text: 'foo' } }
+// { song: { title: '', text: 'foo' } } -> { song: { text: 'foo' } }
 const removeBlanks = require('../../lib/remove_blank_fields')
 // passing this as a second argument to `router.<verb>` will make it
 // so that a token MUST be passed for that route to be available
@@ -49,20 +49,20 @@ router.get('/songs/:id',  (req, res, next) => {
 	// req.params.id will be set based on the `:id` in the route
 	Songs.findById(req.params.id)
 		.then(handle404)
-		// if `findById` is succesful, respond with 200 and "example" JSON
+		// if `findById` is succesful, respond with 200 and "song" JSON
 		.then((song) => res.status(200).json({ song: song.toObject() }))
 		// if an error occurs, pass it to the handler
 		.catch(next)
 })
 
 // CREATE
-// POST /examples
+// POST /songs
 router.post('/songs',  (req, res, next) => {
-	// set owner of new example to be current user
-	// req.body.example.owner = req.user.id
+	// set owner of new song to be current user
+	// req.body.song.owner = req.user.id
 
 	Songs.create(req.body.song)
-		// respond to succesful `create` with status 201 and JSON of new "example"
+		// respond to succesful `create` with status 201 and JSON of new "song"
 		.then((song) => {
 			res.status(201).json({ song: song.toObject() })
 		})
@@ -77,14 +77,14 @@ router.post('/songs',  (req, res, next) => {
 router.patch('/songs/:id', (req, res, next) => {
 	// if the client attempts to change the `owner` property by including a new
 	// owner, prevent that by deleting that key/value pair
-	// delete req.body.example.owner
+	// delete req.body.song.owner
 
 	Songs.findById(req.params.id)
 		.then(handle404)
 		.then((song) => {
 			// pass the `req` object and the Mongoose record to `requireOwnership`
 			// it will throw an error if the current user isn't the owner
-			// requireOwnership(req, example)
+			// requireOwnership(req, song)
 
 			// pass the result of Mongoose's `.update` to the next `.then`
 			return song.updateOne(req.body.song)
@@ -101,8 +101,8 @@ router.delete('/songs/:id',(req, res, next) => {
 	Songs.findById(req.params.id)
 		.then(handle404)
 		.then((song) => {
-			// throw an error if current user doesn't own `example`
-			// requireOwnership(req, example)
+			// throw an error if current user doesn't own `song`
+			// requireOwnership(req, song)
 			// delete the song ONLY IF the above didn't throw
 			song.deleteOne()
 		})
